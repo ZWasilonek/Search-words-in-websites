@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -18,14 +18,22 @@ import org.jsoup.select.Elements;
 public class Search {
 
     public static void main(String[] args) {
+        String patternURL = "^(http:\\/\\/|https:\\/\\/)?(www.)?([a-zA-Z0-9]+).[a-zA-Z0-9]*.[a-z]{3}.?([a-z]+)?$";
 
         Scanner sc = new Scanner(System.in);
 
-        findPopularWords("http://www.onet.pl");
+        System.out.println("Provide the website address");
+        String word = "";
+
+        do {
+            word = sc.nextLine();
+        } while (!word.matches(patternURL));
+
+        findPopularWords(word);
+
         System.out.println("Enter key words and \"quit\" when you are done");
 
-        List<String> filteredWords = new ArrayList<>();
-        String word = "";
+        Set<String> filteredWords = new TreeSet<>();
 
         do {
             word = sc.nextLine();
@@ -46,7 +54,7 @@ public class Search {
             Document document = connect.get();
             Elements links = document.select("span.title");
             Path path = Paths.get("popular_words.txt");
-            ArrayList<String> outList = new ArrayList<>();
+            Set<String> outList = new TreeSet<>();
 
             for (Element elem : links) {
                 StringTokenizer tokenizer = new StringTokenizer(elem.text());
@@ -71,22 +79,18 @@ public class Search {
         }
     }
 
-    static void filterWords(List<String> filteredWords) {
+    static void filterWords(Set<String> filteredWords) {
         Path inputPath = Paths.get("popular_words.txt");
         Path outputPath = Paths.get("filtered_popular_words.txt");
-        ArrayList<String> outList = new ArrayList<>();
+        Set<String> outList = new TreeSet<>();
 
         try {
             for (String word : Files.readAllLines(inputPath)) {
-                boolean filtered = false;
                 for (String filteredWord : filteredWords) {
                     if (filteredWord.equals(word)) {
-                        filtered = true;
+                        outList.add(word);
                         break;
                     }
-                }
-                if (filtered) {
-                    outList.add(word);
                 }
             }
             Files.write(outputPath, outList);
